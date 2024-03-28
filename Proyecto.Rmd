@@ -12,14 +12,114 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 #Cargamos las librerías
 
-#Para que no salgan los warnings:
+#Cargamos las librerías
 suppressWarnings({ 
   library(readr)
   library(ggplot2)
   library(plotly)
 })
-# Leer el archivo de texto
-datos_ticket <- readLines("20231218Mercadona60,47.txt")
 
 ```
+```{r}
+#Función que accede al directorio donde se encuentran los datos y los devuelve 
+#en forma de vector
 
+leer_directorio <- function(ruta_directorio) {
+  
+  resultado = list.files(path = ruta_directorio, pattern = "*.txt")
+  
+  return (resultado)
+  
+}
+```
+
+
+```{r}
+#Función que lee las lineas del archivo que se ha proporcionado en la función 
+#que lee el directorio. Devuelve las lineas leidas en forma de vector.
+
+leer_lineas_archivo <- function(ruta_directorio, archivo) {
+  
+  stream = file(paste(ruta_directorio,archivo, sep = ""), "r")
+  vector_lineas <- readLines(stream, n = -1, TRUE, FALSE)
+  
+  close(stream)
+  return (vector_lineas)
+}
+```
+
+
+```{r}
+#Función que procesa las lineas de la cabecera que no nos interesan. 
+#Todas las fucniones que empiezan por procesador contienen dentro una fucnión 
+#aceptar y una función procesar. La función aceptar es la función de criterio 
+#que según la linea que queramos procesar será de diferente manera. La función 
+#procesar nos procesa la linea que queremos y nos la guarda en el dataframe.
+
+procesador_cabecera <- {}
+
+procesador_cabecera$aceptar <- function(linea, indice){
+    if(indice < 3) {
+      return (TRUE)
+    }
+    return (FALSE)
+}
+procesador_cabecera$procesar <- function(linea) {
+    
+}
+```
+
+
+```{r}
+#Función que procesa el código postal y la ciudad del ticket introducido.
+
+procesador_cp_ciudad <- {}
+procesador_cp_ciudad$aceptar <- function(linea, indice){
+    if(3 == indice) 
+      return (TRUE)
+    return (FALSE)
+}
+
+procesador_cp_ciudad$procesar <- function(linea){
+    print(paste(" esto es el codigo postal y la ciudad" , linea))
+    # aqui, devolver la estructura de datos
+    resultado <- {}
+    resultado$cod_postal = "1234"
+    resultado$ciudad = "DENIA"
+    return (resultado)
+  }
+
+procesadores_linea <- list(procesador_cabecera, procesador_cp_ciudad)
+```
+
+
+```{r}
+#Función que procesa todos los tickets introducidos en la carpeta data/
+
+procesar_tickets <- function(){
+  ruta_archivos = "data/"
+  lista_archivos = leer_directorio(ruta_archivos)
+  resultado <- list()
+  for(archivo in lista_archivos){
+    lineas <- leer_lineas_archivo(ruta_archivos,archivo)
+    for (i in 1:length(lineas)) {
+      linea <- lineas[i]
+      
+      for(fx in procesadores_linea) {
+        
+        if(fx$aceptar(linea, i)){
+          
+          append(resultado, fx$procesar(linea))
+        }
+      }
+    }
+  }
+}
+```
+
+
+```{r}
+
+procesar_tickets()
+
+```
